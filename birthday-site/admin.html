@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — ছবি ও কোট সাজাও</title>
+<style>
+  *{box-sizing:border-box;}
+  body{font-family:Poppins,Arial,sans-serif; background:#fff0f5; margin:0; padding:20px; color:#4a2c3a;}
+  h1{font-size:1.3rem; color:#e0538a;}
+  .steps{background:#fff; border-radius:12px; padding:14px 18px; margin:14px 0; font-size:0.92rem; line-height:1.6;}
+  .steps b{color:#e0538a;}
+  #fileInput{margin:10px 0;}
+  #grid{display:flex; flex-wrap:wrap; gap:14px; margin-top:16px;}
+  .item{
+    width:150px; background:#fff; border-radius:10px; padding:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08); cursor:grab; position:relative;
+  }
+  .item.dragging{opacity:0.4;}
+  .item img{width:100%; height:110px; object-fit:cover; border-radius:6px; display:block;}
+  .item .fname{font-size:0.68rem; opacity:0.6; margin:4px 0; word-break:break-all;}
+  .item textarea{
+    width:100%; font-size:0.78rem; padding:5px; border-radius:6px; border:1px solid #f0c9dc;
+    resize:vertical; min-height:44px; font-family:inherit;
+  }
+  .item .remove{
+    position:absolute; top:4px; right:4px; background:#ff6fa5; color:#fff;
+    border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:0.75rem;
+  }
+  .item .order{position:absolute; top:4px; left:4px; background:rgba(0,0,0,0.55); color:#fff; font-size:0.7rem; padding:1px 6px; border-radius:10px;}
+  button.action{
+    background:#ff6fa5; color:#fff; border:none; padding:10px 20px; border-radius:24px;
+    font-weight:600; cursor:pointer; margin:6px 6px 6px 0;
+  }
+  #exportArea{margin-top:20px; display:none;}
+  textarea#codeOut{width:100%; height:220px; font-family:monospace; font-size:0.8rem; padding:10px; border-radius:8px; border:1px solid #f0c9dc;}
+  .downloads{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .downloads a{
+    background:#fdeef5; color:#e0538a; text-decoration:none; padding:6px 10px; border-radius:8px; font-size:0.8rem; border:1px solid #f0c9dc;
+  }
+</style>
+</head>
+<body>
+
+<h1>🌳 Memory Tree — Admin Panel</h1>
+<div class="steps">
+  এই পেজটা শুধু <b>তোমার নিজের কম্পিউটারে</b> চালানোর জন্য — সাইটের সাথে লাইভ যুক্ত না।<br><br>
+  <b>ধাপ ১:</b> নিচে থেকে যত ছবি চাও সিলেক্ট করো (৬০টা পর্যন্ত)।<br>
+  <b>ধাপ ২:</b> প্রতিটা ছবির নিচে একটা করে সুইট কোট লেখো (যেমন: You are beautiful, I love you)।<br>
+  <b>ধাপ ৩:</b> ছবি ড্র্যাগ করে অর্ডার ঠিক করতে পারো।<br>
+  <b>ধাপ ৪:</b> "Generate Code" বাটনে ক্লিক করো — নিচে কোড আসবে, সেটা কপি করে <code>js/photos-data.js</code> ফাইলে বসিয়ে দাও।<br>
+  <b>ধাপ ৫:</b> "Download" বাটনগুলো দিয়ে প্রতিটা ছবি ডাউনলোড করো (নামগুলো auto ঠিক থাকবে) এবং <code>images/</code> ফোল্ডারে রাখো।
+</div>
+
+<input type="file" id="fileInput" accept="image/*" multiple />
+<div id="grid"></div>
+
+<button class="action" id="genBtn">Generate Code</button>
+
+<div id="exportArea">
+  <p><b>এই কোডটা কপি করে <code>js/photos-data.js</code> এ বসাও:</b></p>
+  <textarea id="codeOut" readonly></textarea>
+  <button class="action" id="copyBtn">Copy Code</button>
+
+  <p style="margin-top:14px;"><b>ছবিগুলো ডাউনলোড করে <code>images/</code> ফোল্ডারে রাখো:</b></p>
+  <div class="downloads" id="downloads"></div>
+</div>
+
+<script>
+let items = []; // {file, url, quote, id}
+let counter = 0;
+
+const grid = document.getElementById('grid');
+const fileInput = document.getElementById('fileInput');
+
+fileInput.addEventListener('change', (e)=>{
+  [...e.target.files].forEach(file=>{
+    counter++;
+    items.push({ id: counter, file, url: URL.createObjectURL(file), quote: '' });
+  });
+  fileInput.value = '';
+  render();
+});
+
+function render(){
+  grid.innerHTML = '';
+  items.forEach((item, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.draggable = true;
+    div.dataset.id = item.id;
+    div.innerHTML = `
+      <span class="order">#${idx+1}</span>
+      <button class="remove">✕</button>
+      <img src="${item.url}">
+      <div class="fname">${item.file.name}</div>
+      <textarea placeholder="quote লেখো...">${item.quote}</textarea>
+    `;
+    div.querySelector('.remove').addEventListener('click', ()=>{
+      items = items.filter(i=>i.id !== item.id);
+      render();
+    });
+    div.querySelector('textarea').addEventListener('input', (e)=>{
+      item.quote = e.target.value;
+    });
+    div.addEventListener('dragstart', ()=> div.classList.add('dragging'));
+    div.addEventListener('dragend', ()=> { div.classList.remove('dragging'); syncOrder(); });
+    grid.appendChild(div);
+  });
+}
+
+grid.addEventListener('dragover', (e)=>{
+  e.preventDefault();
+  const dragging = grid.querySelector('.dragging');
+  if(!dragging) return;
+  const after = [...grid.querySelectorAll('.item:not(.dragging)')].find(el=>{
+    const rect = el.getBoundingClientRect();
+    return e.clientY <= rect.top + rect.height/2 && e.clientX <= rect.right;
+  });
+  if(after) grid.insertBefore(dragging, after);
+  else grid.appendChild(dragging);
+});
+
+function syncOrder(){
+  const ids = [...grid.querySelectorAll('.item')].map(el=>Number(el.dataset.id));
+  items.sort((a,b)=> ids.indexOf(a.id) - ids.indexOf(b.id));
+  render();
+}
+
+document.getElementById('genBtn').addEventListener('click', ()=>{
+  if(items.length === 0){ alert('আগে কিছু ছবি সিলেক্ট করো'); return; }
+
+  let code = `// admin.html দিয়ে তৈরি — এই ফাইলটা js/photos-data.js হিসেবে save করো\n\nconst photosData = [\n`;
+  const downloadsWrap = document.getElementById('downloads');
+  downloadsWrap.innerHTML = '';
+
+  items.forEach((item, idx)=>{
+    const ext = item.file.name.split('.').pop().toLowerCase();
+    const fname = `photo${idx+1}.${ext}`;
+    const safeQuote = (item.quote || '❤').replace(/"/g,'\\"');
+    code += `  { src: "images/${fname}", quote: "${safeQuote}" },\n`;
+
+    const a = document.createElement('a');
+    a.href = item.url;
+    a.download = fname;
+    a.textContent = '⬇ ' + fname;
+    downloadsWrap.appendChild(a);
+  });
+  code += `];\n`;
+
+  document.getElementById('codeOut').value = code;
+  document.getElementById('exportArea').style.display = 'block';
+  document.getElementById('exportArea').scrollIntoView({behavior:'smooth'});
+});
+
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  const ta = document.getElementById('codeOut');
+  ta.select();
+  document.execCommand('copy');
+  alert('কপি হয়ে গেছে ✅');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+:root{
+  --pink:#ff6fa5;
+  --pink-dark:#e0538a;
+  --pink-light:#ffe3ee;
+  --cream:#fff8fb;
+  --text:#4a2c3a;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+html,body{
+  width:100%;
+  min-height:100%;
+  overflow-x:hidden;
+  background:linear-gradient(180deg,#fff0f5,#ffe3ee 60%,#ffd6e8);
+  font-family:'Poppins',sans-serif;
+  color:var(--text);
+}
+
+#confetti-canvas{
+  position:fixed; inset:0; pointer-events:none; z-index:999; width:100%; height:100%;
+}
+
+.stage{
+  min-height:100vh;
+  width:100%;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:40px 20px;
+  position:relative;
+}
+.stage.active{display:flex;}
+
+.stage-title{font-size:1.5rem; margin-bottom:6px; color:var(--pink-dark);}
+.stage-sub{font-size:0.95rem; opacity:0.75; margin-bottom:28px;}
+
+.btn{
+  border:none; outline:none; cursor:pointer;
+  font-family:'Poppins',sans-serif; font-weight:600; font-size:1rem;
+  padding:14px 32px; border-radius:50px;
+  background:var(--pink); color:#fff;
+  box-shadow:0 8px 20px rgba(255,111,165,0.4);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.btn:active{transform:scale(0.95);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 24px rgba(255,111,165,0.5);}
+.hidden{display:none !important;}
+
+/* ---------- STAGE 1: INTRO ---------- */
+.floating-hearts{position:absolute; inset:0; overflow:hidden; pointer-events:none;}
+.floating-hearts span{
+  position:absolute; bottom:-10%; font-size:1.4rem; opacity:0.6;
+  animation:floatUp linear infinite;
+}
+@keyframes floatUp{
+  to{ transform:translateY(-110vh) rotate(20deg); opacity:0; }
+}
+
+.intro-box{position:relative; z-index:2;}
+.typed-text{
+  font-family:'Great Vibes', cursive;
+  font-size:3rem;
+  color:var(--pink-dark);
+  min-height:70px;
+  border-right:2px solid var(--pink-dark);
+  white-space:nowrap;
+  overflow:hidden;
+  margin:0 auto 30px;
+  display:inline-block;
+}
+.typed-text.done{border-right:none;}
+
+/* ---------- STAGE 2: SCRATCH ---------- */
+.scratch-wrap{
+  display:flex; gap:18px; flex-wrap:wrap; justify-content:center;
+}
+.scratch-card{
+  position:relative;
+  width:104px; height:104px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+}
+.scratch-canvas{
+  position:absolute; inset:0; z-index:2; touch-action:none; cursor:pointer;
+}
+.scratch-answer{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:1.2rem; color:var(--pink-dark);
+  background:var(--pink-light);
+}
+.scratch-label{
+  position:absolute; bottom:-24px; left:0; right:0; font-size:0.8rem; opacity:0.7;
+}
+
+/* ---------- STAGE 3: REVEAL ---------- */
+.reveal-title{
+  font-size:2.2rem; color:var(--pink-dark); margin-bottom:10px;
+  animation:popIn .8s ease;
+}
+.reveal-sub{
+  font-family:'Great Vibes', cursive; font-size:2rem; margin-bottom:34px;
+}
+@keyframes popIn{
+  0%{transform:scale(0.3); opacity:0;}
+  60%{transform:scale(1.15); opacity:1;}
+  100%{transform:scale(1);}
+}
+
+/* ---------- STAGE 4: TREE ---------- */
+.tree-container{
+  position:relative;
+  width:100%;
+  max-width:420px;
+  aspect-ratio:4/3;
+  margin-bottom:24px;
+}
+.tree-svg{position:absolute; inset:0; width:100%; height:100%;}
+.canopy{
+  position:absolute; top:0; left:0; width:100%; height:70%;
+}
+.leaf-photo{
+  position:absolute;
+  border-radius:50%;
+  overflow:hidden;
+  border:2px solid #fff;
+  box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  cursor:pointer;
+  background:#fff;
+  transform:translate(-50%,-50%);
+  transition:transform .15s ease;
+}
+.leaf-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+.leaf-photo:active{transform:translate(-50%,-50%) scale(0.92);}
+
+/* ---------- PHOTO MODAL ---------- */
+.modal{
+  position:fixed; inset:0; z-index:1000;
+  display:flex; align-items:center; justify-content:center;
+}
+.modal-backdrop{
+  position:absolute; inset:0; background:rgba(30,10,20,0.75);
+}
+.flip-card{
+  position:relative; z-index:2;
+  width:78vw; max-width:320px; aspect-ratio:3/4;
+  perspective:1200px;
+  cursor:pointer;
+}
+.flip-inner{
+  position:relative; width:100%; height:100%;
+  transition:transform .6s;
+  transform-style:preserve-3d;
+}
+.flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+.flip-front, .flip-back{
+  position:absolute; inset:0;
+  backface-visibility:hidden;
+  border-radius:16px;
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+.flip-front{background:#fff;}
+.flip-front img{width:100%; height:100%; object-fit:cover;}
+.turn-hint{
+  position:absolute; bottom:10px; right:14px;
+  background:rgba(0,0,0,0.5); color:#fff; font-size:0.75rem;
+  padding:4px 10px; border-radius:20px;
+}
+.flip-back{
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  transform:rotateY(180deg);
+  padding:26px;
+}
+.quote-text{
+  color:#fff; font-family:'Great Vibes', cursive; font-size:1.7rem; line-height:1.4;
+}
+.btn-close{
+  position:absolute; top:24px; right:20px; z-index:3;
+  background:rgba(255,255,255,0.9); color:var(--pink-dark);
+  width:40px; height:40px; border-radius:50%; padding:0; font-size:1.1rem;
+}
+
+/* ---------- STAGE 5: CAKE ---------- */
+.cake-wrap{position:relative; width:100%; max-width:320px;}
+.cake-svg{width:100%; height:auto; user-select:none;}
+.flame{transform-origin:center; animation:flicker 1s ease-in-out infinite alternate;}
+@keyframes flicker{ from{transform:scale(1);} to{transform:scale(1.15) rotate(3deg);} }
+.cake-left{clip-path:inset(0 50% 0 0); transition:transform .5s ease;}
+.cake-right{clip-path:inset(0 0 0 50%); transition:transform .5s ease;}
+.cake-wrap.cut .cake-left{transform:translateX(-22px) rotate(-3deg);}
+.cake-wrap.cut .cake-right{transform:translateX(22px) rotate(3deg);}
+.knife{
+  position:absolute; top:-10px; font-size:2rem;
+  transform:translate(-50%,-50%) rotate(90deg);
+  pointer-events:none; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+.cake-hint{margin-top:18px; font-size:0.9rem; opacity:0.7;}
+
+/* ---------- STAGE 6: FINALE ---------- */
+.finale-title{
+  font-size:2.6rem; color:var(--pink-dark); line-height:1.3;
+  animation:popIn 1s ease;
+}
+.finale-sub{
+  font-family:'Great Vibes', cursive; font-size:1.8rem; margin-top:16px;
+}
+
+@media (max-width:380px){
+  .typed-text{font-size:2.2rem;}
+  .scratch-card{width:88px; height:88px;}
+}
